@@ -448,18 +448,27 @@
       juriCount || 0;
 
   }
+// ==========================================
+// SEMBUNYIKAN SEMUA HALAMAN
+// ==========================================
 
+function sembunyikanSemuaHalaman() {
+
+    document.getElementById("dashboardTopbar").style.display = "none";
+    document.getElementById("dashboardCards").style.display = "none";
+
+    document.getElementById("halamanRombel").style.display = "none";
+    document.getElementById("halamanKarya").style.display = "none";
+}
 // ==========================================
 // DATA ROMBEL
 // ==========================================
 
 async function tampilkanRombel() {
 
-    document.getElementById("halamanKarya").style.display = "none";
-    document.getElementById("halamanRombel").style.display = "block";
+    sembunyikanSemuaHalaman();
 
-    document.getElementById("dashboardTopbar").style.display = "none";
-    document.getElementById("dashboardCards").style.display = "none";
+    document.getElementById("halamanRombel").style.display = "block";
 
     await loadRombel();
 }
@@ -657,11 +666,9 @@ async function hapusRombel(id) {
 
 async function tampilkanKarya() {
 
-    document.getElementById("halamanRombel").style.display = "none";
-    document.getElementById("halamanKarya").style.display = "block";
+    sembunyikanSemuaHalaman();
 
-    document.getElementById("dashboardTopbar").style.display = "none";
-    document.getElementById("dashboardCards").style.display = "none";
+    document.getElementById("halamanKarya").style.display = "block";
 
     await loadKarya();
 }
