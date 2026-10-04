@@ -475,20 +475,48 @@ async function loadRombel() {
 
   }
 
-  container.innerHTML = data.map((rombel, index) => `
-    <div style="
-      padding:15px;
-      border:1px solid #e5e7eb;
-      border-radius:10px;
-      margin-bottom:10px;
-    ">
-      <strong>${index + 1}. ${rombel.nama_rombel}</strong>
-      <br>
-      <span style="color:#6b7280;">
-        Wali Kelas: ${rombel.wali_kelas || "-"}
-      </span>
+ container.innerHTML = data.map((rombel, index) => `
+  <div style="
+    padding:15px;
+    border:1px solid #e5e7eb;
+    border-radius:10px;
+    margin-bottom:10px;
+  ">
+
+    <strong>${index + 1}. ${rombel.nama_rombel}</strong>
+
+    <br>
+
+    <span style="color:#6b7280;">
+      Wali Kelas: ${rombel.wali_kelas || "-"}
+    </span>
+
+    <div style="margin-top:12px; display:flex; gap:8px;">
+
+      <button
+        onclick="editRombel(${rombel.id})"
+        style="
+          width:auto;
+          padding:8px 14px;
+          background:#2563eb;
+        ">
+        Edit
+      </button>
+
+      <button
+        onclick="hapusRombel(${rombel.id})"
+        style="
+          width:auto;
+          padding:8px 14px;
+          background:#dc2626;
+        ">
+        Hapus
+      </button>
+
     </div>
-  `).join("");
+
+  </div>
+`).join("");
 
 }
 
@@ -527,6 +555,80 @@ async function tambahRombel() {
 
   await loadDashboard();
 
+}
+  // ==========================================
+// EDIT ROMBEL
+// ==========================================
+
+async function editRombel(id) {
+
+  const { data, error } =
+    await supabaseClient
+      .from("rombel")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+  if (error) {
+    alert("Gagal mengambil data rombel: " + error.message);
+    return;
+  }
+
+  const namaBaru =
+    prompt("Nama rombel:", data.nama_rombel);
+
+  if (!namaBaru) return;
+
+  const waliBaru =
+    prompt("Nama wali kelas:", data.wali_kelas || "");
+
+  const { error: updateError } =
+    await supabaseClient
+      .from("rombel")
+      .update({
+        nama_rombel: namaBaru,
+        wali_kelas: waliBaru || null
+      })
+      .eq("id", id);
+
+  if (updateError) {
+    alert("Gagal mengubah data: " + updateError.message);
+    return;
+  }
+
+  alert("Data rombel berhasil diperbarui.");
+
+  await loadRombel();
+  await loadDashboard();
+}
+
+
+// ==========================================
+// HAPUS ROMBEL
+// ==========================================
+
+async function hapusRombel(id) {
+
+  const yakin =
+    confirm("Apakah kamu yakin ingin menghapus rombel ini?");
+
+  if (!yakin) return;
+
+  const { error } =
+    await supabaseClient
+      .from("rombel")
+      .delete()
+      .eq("id", id);
+
+  if (error) {
+    alert("Gagal menghapus rombel: " + error.message);
+    return;
+  }
+
+  alert("Rombel berhasil dihapus.");
+
+  await loadRombel();
+  await loadDashboard();
 }
   // ==========================================
   // LOGOUT
