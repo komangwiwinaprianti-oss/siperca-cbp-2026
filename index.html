@@ -253,7 +253,7 @@
 
       <div class="menu">
         <button>Dashboard</button>
-        <button>Data Rombel</button>
+        <button onclick="tampilkanRombel()">Data Rombel</button>
         <button>Data Karya</button>
         <button>Verifikasi</button>
         <button>Data Juri</button>
@@ -269,7 +269,24 @@
     </aside>
 
     <main class="content">
+<div id="halamanRombel" style="display:none;">
 
+  <div class="topbar">
+    <h1>Data Rombel</h1>
+    <p>Kelola data rombel peserta Lomba Penyiaran Edukatif CBP Rupiah 2026.</p>
+  </div>
+
+  <div class="card">
+    <button onclick="tambahRombel()" style="max-width:200px; margin-bottom:20px;">
+      + Tambah Rombel
+    </button>
+
+    <div id="daftarRombel">
+      Memuat data rombel...
+    </div>
+  </div>
+
+</div>
       <div class="topbar">
         <h1>Dashboard SIPERCA</h1>
         <p>Sistem Penilaian Lomba Penyiaran Edukatif CBP Rupiah 2026</p>
@@ -411,7 +428,106 @@
 
   }
 
+// ==========================================
+// DATA ROMBEL
+// ==========================================
 
+async function tampilkanRombel() {
+
+  document.querySelector(".topbar").style.display = "none";
+  document.querySelector(".cards").style.display = "none";
+
+  document.getElementById("halamanRombel").style.display = "block";
+
+  await loadRombel();
+
+}
+
+
+async function loadRombel() {
+
+  const container =
+    document.getElementById("daftarRombel");
+
+  container.innerHTML = "Memuat data rombel...";
+
+  const { data, error } =
+    await supabaseClient
+      .from("rombel")
+      .select("*")
+      .order("nama_rombel");
+
+  if (error) {
+
+    container.innerHTML =
+      "Gagal memuat data rombel: " + error.message;
+
+    return;
+
+  }
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p>Belum ada data rombel.</p>";
+
+    return;
+
+  }
+
+  container.innerHTML = data.map((rombel, index) => `
+    <div style="
+      padding:15px;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      margin-bottom:10px;
+    ">
+      <strong>${index + 1}. ${rombel.nama_rombel}</strong>
+      <br>
+      <span style="color:#6b7280;">
+        Wali Kelas: ${rombel.wali_kelas || "-"}
+      </span>
+    </div>
+  `).join("");
+
+}
+
+
+async function tambahRombel() {
+
+  const namaRombel =
+    prompt("Masukkan nama rombel:");
+
+  if (!namaRombel) return;
+
+  const waliKelas =
+    prompt("Masukkan nama wali kelas:");
+
+  const { error } =
+    await supabaseClient
+      .from("rombel")
+      .insert([
+        {
+          nama_rombel: namaRombel,
+          wali_kelas: waliKelas || null
+        }
+      ]);
+
+  if (error) {
+
+    alert("Gagal menambahkan rombel: " + error.message);
+
+    return;
+
+  }
+
+  alert("Rombel berhasil ditambahkan.");
+
+  await loadRombel();
+
+  await loadDashboard();
+
+}
   // ==========================================
   // LOGOUT
   // ==========================================
