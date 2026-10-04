@@ -254,7 +254,7 @@
       <div class="menu">
         <button>Dashboard</button>
         <button onclick="tampilkanRombel()">Data Rombel</button>
-        <button>Data Karya</button>
+       <button onclick="tampilkanKarya()">Data Karya</button>
         <button>Verifikasi</button>
         <button>Data Juri</button>
         <button>Penugasan Juri</button>
@@ -270,7 +270,28 @@
 
     <main class="content">
 <div id="halamanRombel" style="display:none;">
+<div id="halamanKarya" style="display:none;">
 
+  <div class="topbar">
+    <h1>Data Karya</h1>
+    <p>Kelola karya peserta Lomba Penyiaran Edukatif CBP Rupiah 2026.</p>
+  </div>
+
+  <div class="card">
+
+    <button
+      onclick="tambahKarya()"
+      style="max-width:200px; margin-bottom:20px;">
+      + Tambah Karya
+    </button>
+
+    <div id="daftarKarya">
+      Memuat data karya...
+    </div>
+
+  </div>
+
+</div>
   <div class="topbar">
     <h1>Data Rombel</h1>
     <p>Kelola data rombel peserta Lomba Penyiaran Edukatif CBP Rupiah 2026.</p>
@@ -628,6 +649,349 @@ async function hapusRombel(id) {
   alert("Rombel berhasil dihapus.");
 
   await loadRombel();
+  await loadDashboard();
+}
+ // ==========================================
+// DATA KARYA
+// ==========================================
+
+async function tampilkanKarya() {
+
+  document.getElementById("halamanRombel").style.display = "none";
+  document.getElementById("halamanKarya").style.display = "block";
+
+  document.querySelector(".topbar").style.display = "none";
+  document.querySelector(".cards").style.display = "none";
+
+  await loadKarya();
+}
+
+
+// ==========================================
+// LOAD DATA KARYA
+// ==========================================
+
+async function loadKarya() {
+
+  const container =
+    document.getElementById("daftarKarya");
+
+  container.innerHTML = "Memuat data karya...";
+
+  const { data, error } =
+    await supabaseClient
+      .from("karya")
+      .select(`
+        *,
+        rombel (
+          nama_rombel
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+  if (error) {
+
+    container.innerHTML =
+      "Gagal memuat data karya: " + error.message;
+
+    return;
+  }
+
+  if (!data || data.length === 0) {
+
+    container.innerHTML =
+      "<p>Belum ada data karya.</p>";
+
+    return;
+  }
+
+  container.innerHTML = data.map((karya, index) => `
+
+    <div style="
+      padding:18px;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      margin-bottom:12px;
+    ">
+
+      <strong>
+        ${index + 1}. ${karya.judul_karya}
+      </strong>
+
+      <p style="margin-top:8px;">
+        Rombel:
+        ${karya.rombel?.nama_rombel || "-"}
+      </p>
+
+      <p>
+        Ketua:
+        ${karya.nama_ketua || "-"}
+      </p>
+
+      <p>
+        Lagu:
+        ${karya.judul_lagu || "-"}
+        — ${karya.nama_artis || "-"}
+      </p>
+
+      <p>
+        Status:
+        <strong>${karya.status}</strong>
+      </p>
+
+      <div style="
+        margin-top:12px;
+        display:flex;
+        gap:8px;
+        flex-wrap:wrap;
+      ">
+
+        <button
+          onclick="editKarya(${karya.id})"
+          style="
+            width:auto;
+            padding:8px 14px;
+            background:#2563eb;
+          ">
+          Edit
+        </button>
+
+        <button
+          onclick="hapusKarya(${karya.id})"
+          style="
+            width:auto;
+            padding:8px 14px;
+            background:#dc2626;
+          ">
+          Hapus
+        </button>
+
+      </div>
+
+    </div>
+
+  `).join("");
+}
+
+
+// ==========================================
+// TAMBAH KARYA
+// ==========================================
+
+async function tambahKarya() {
+
+  const { data: rombelData, error: rombelError } =
+    await supabaseClient
+      .from("rombel")
+      .select("*")
+      .order("nama_rombel");
+
+  if (rombelError) {
+
+    alert(
+      "Gagal mengambil data rombel: " +
+      rombelError.message
+    );
+
+    return;
+  }
+
+  if (!rombelData || rombelData.length === 0) {
+
+    alert(
+      "Belum ada data rombel. " +
+      "Tambahkan rombel terlebih dahulu."
+    );
+
+    return;
+  }
+
+  const pilihanRombel =
+    rombelData
+      .map((r, i) =>
+        `${i + 1}. ${r.nama_rombel}`
+      )
+      .join("\n");
+
+  const pilihan =
+    prompt(
+      "Pilih nomor rombel:\n\n" +
+      pilihanRombel
+    );
+
+  if (!pilihan) return;
+
+  const index =
+    parseInt(pilihan) - 1;
+
+  if (
+    isNaN(index) ||
+    index < 0 ||
+    index >= rombelData.length
+  ) {
+
+    alert("Pilihan rombel tidak valid.");
+
+    return;
+  }
+
+  const rombelId =
+    rombelData[index].id;
+
+  const judulKarya =
+    prompt("Masukkan judul karya:");
+
+  if (!judulKarya) return;
+
+  const namaKetua =
+    prompt("Masukkan nama ketua tim:");
+
+  const judulLagu =
+    prompt("Masukkan judul lagu:");
+
+  const namaArtis =
+    prompt("Masukkan nama artis/penyanyi:");
+
+  const { error } =
+    await supabaseClient
+      .from("karya")
+      .insert([
+        {
+          rombel_id: rombelId,
+          judul_karya: judulKarya,
+          nama_ketua: namaKetua || null,
+          judul_lagu: judulLagu || null,
+          nama_artis: namaArtis || null,
+          status: "Menunggu Verifikasi"
+        }
+      ]);
+
+  if (error) {
+
+    alert(
+      "Gagal menambahkan karya: " +
+      error.message
+    );
+
+    return;
+  }
+
+  alert("Karya berhasil ditambahkan.");
+
+  await loadKarya();
+  await loadDashboard();
+}
+
+
+// ==========================================
+// EDIT KARYA
+// ==========================================
+
+async function editKarya(id) {
+
+  const { data, error } =
+    await supabaseClient
+      .from("karya")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+  if (error) {
+
+    alert(
+      "Gagal mengambil data karya: " +
+      error.message
+    );
+
+    return;
+  }
+
+  const judulKarya =
+    prompt(
+      "Judul karya:",
+      data.judul_karya
+    );
+
+  if (!judulKarya) return;
+
+  const namaKetua =
+    prompt(
+      "Nama ketua:",
+      data.nama_ketua || ""
+    );
+
+  const judulLagu =
+    prompt(
+      "Judul lagu:",
+      data.judul_lagu || ""
+    );
+
+  const namaArtis =
+    prompt(
+      "Nama artis:",
+      data.nama_artis || ""
+    );
+
+  const { error: updateError } =
+    await supabaseClient
+      .from("karya")
+      .update({
+        judul_karya: judulKarya,
+        nama_ketua: namaKetua || null,
+        judul_lagu: judulLagu || null,
+        nama_artis: namaArtis || null
+      })
+      .eq("id", id);
+
+  if (updateError) {
+
+    alert(
+      "Gagal mengubah karya: " +
+      updateError.message
+    );
+
+    return;
+  }
+
+  alert("Data karya berhasil diperbarui.");
+
+  await loadKarya();
+  await loadDashboard();
+}
+
+
+// ==========================================
+// HAPUS KARYA
+// ==========================================
+
+async function hapusKarya(id) {
+
+  const yakin =
+    confirm(
+      "Apakah kamu yakin ingin menghapus karya ini?"
+    );
+
+  if (!yakin) return;
+
+  const { error } =
+    await supabaseClient
+      .from("karya")
+      .delete()
+      .eq("id", id);
+
+  if (error) {
+
+    alert(
+      "Gagal menghapus karya: " +
+      error.message
+    );
+
+    return;
+  }
+
+  alert("Karya berhasil dihapus.");
+
+  await loadKarya();
   await loadDashboard();
 }
   // ==========================================
