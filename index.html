@@ -657,13 +657,11 @@ async function hapusRombel(id) {
 
 async function tampilkanKarya() {
 
-  document.getElementById("halamanRombel").style.display = "none";
-  document.getElementById("halamanKarya").style.display = "block";
+    document.getElementById("halamanRombel").style.display = "none";
+    document.getElementById("halamanKarya").style.display = "block";
 
-  document.querySelector(".topbar").style.display = "none";
-  document.querySelector(".cards").style.display = "none";
-
-  await loadKarya();
+    await loadKarya();
+}
 }
 
 
