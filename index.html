@@ -272,12 +272,12 @@
 <div id="halamanRombel" style="display:none;">
 <div id="halamanKarya" style="display:none;">
 
-  <div class="topbar">
-    <h1>Data Karya</h1>
-    <p>Kelola karya peserta Lomba Penyiaran Edukatif CBP Rupiah 2026.</p>
-  </div>
+ <div class="topbar" id="dashboardTopbar">
+  <h1>Dashboard SIPERCA</h1>
+  <p>Sistem Penilaian Lomba Penyiaran Edukatif CBP Rupiah 2026</p>
+</div>
 
-  <div class="card">
+<div class="cards" id="dashboardCards">
 
     <button
       onclick="tambahKarya()"
@@ -455,13 +455,13 @@
 
 async function tampilkanRombel() {
 
-  document.querySelector(".topbar").style.display = "none";
-  document.querySelector(".cards").style.display = "none";
+    document.getElementById("halamanKarya").style.display = "none";
+    document.getElementById("halamanRombel").style.display = "block";
 
-  document.getElementById("halamanRombel").style.display = "block";
+    document.getElementById("dashboardTopbar").style.display = "none";
+    document.getElementById("dashboardCards").style.display = "none";
 
-  await loadRombel();
-
+    await loadRombel();
 }
 
 
@@ -659,6 +659,9 @@ async function tampilkanKarya() {
 
     document.getElementById("halamanRombel").style.display = "none";
     document.getElementById("halamanKarya").style.display = "block";
+
+    document.getElementById("dashboardTopbar").style.display = "none";
+    document.getElementById("dashboardCards").style.display = "none";
 
     await loadKarya();
 }
